@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <item
+        android:id="@+id/menuItemLogout"
+        android:title="Logout" />
+
+    <item
+        android:id="@+id/menuItemUsers"
+        android:title="Active users" />
+
+    <item
+        android:id="@+id/menuTitleAvailible"
+        android:title="Availible"
+        android:checkable="false"
+        app:showAsAction="always"/>
+
+    <item
+        android:title=""
+        android:id="@+id/menuItemAvailible"
+        app:actionViewClass="android.widget.Switch"
+        android:actionLayout="@layout/switch_layout"
+        app:showAsAction="always" />
+</menu>
