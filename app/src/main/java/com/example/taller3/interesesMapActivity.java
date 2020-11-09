@@ -2,6 +2,7 @@ package com.example.taller3;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 import androidx.fragment.app.FragmentActivity;
@@ -16,13 +17,17 @@ import android.location.Geocoder;
 import android.location.Location;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
+import android.view.View;
+import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.CompoundButton;
 import android.widget.Switch;
 import android.widget.Toast;
+import android.widget.Toolbar;
 
 import com.example.taller3.model.User;
 import com.google.android.gms.common.api.ApiException;
@@ -66,7 +71,7 @@ import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
 
-public class interesesMapActivity extends FragmentActivity implements OnMapReadyCallback {
+public class interesesMapActivity extends AppCompatActivity implements OnMapReadyCallback {
     private static final int FINE_LOCATION = 1;
     private static final int REQUEST_CHECK_SETTINGS = 2;
     private FusedLocationProviderClient mFusedLocationClient;
@@ -86,6 +91,7 @@ public class interesesMapActivity extends FragmentActivity implements OnMapReady
     private final static String TAG = "menu activity";
     private DatabaseReference ref;
     private User myUser;
+    private Toolbar mToolbar;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -106,13 +112,21 @@ public class interesesMapActivity extends FragmentActivity implements OnMapReady
         usarPermiso();
         ref = database.getReference("users").child(mAuth.getCurrentUser().getUid());
 
+        mapFragment.setHasOptionsMenu(true);
+
         ref.addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
                 User u = dataSnapshot.getValue(User.class);
-                Log.i(TAG, "onDataChange: " + u.getName() + " " + u.getLastname());
-                myUser = u;
-                updateSwitch();
+                if(u != null) {
+                    Log.i(TAG, "onDataChange: " + u.getName() + " " + u.getLastname());
+                    myUser = u;
+                    updateSwitch();
+                }
+                else{
+                    Log.i(TAG, "onDataChange: U is null");
+                }
+
             }
 
             @Override
@@ -313,7 +327,8 @@ public class interesesMapActivity extends FragmentActivity implements OnMapReady
         mFusedLocationClient.removeLocationUpdates(mLocationCallback);
     }
     private void updateSwitch() {
-        switchAB.setChecked(myUser.isAvailible());
+        if(switchAB != null)
+            switchAB.setChecked(myUser.isAvailible());
     }
 
 
@@ -333,10 +348,9 @@ public class interesesMapActivity extends FragmentActivity implements OnMapReady
         updateUI(currentUser);
     }
 
+
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
-
-
 
         MenuInflater menuInflater = getMenuInflater();
         menuInflater.inflate(R.menu.menu, menu);

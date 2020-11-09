@@ -35,7 +35,7 @@ public class SignupActivity extends AppCompatActivity {
         setContentView(R.layout.activity_signup);
 
         etName = findViewById(R.id.editTextTextPersonLastName);
-        etLastName = findViewById(R.id.editTextTextPersonLastName);
+        etLastName = findViewById(R.id.editTextTextPersonName);
         etEmail = findViewById(R.id.editTextTextEmailAddressRegister);
         etPass1 = findViewById(R.id.editTextTextPasswordRegister);
         etPass2 = findViewById(R.id.editTextTextConfirm);
@@ -75,8 +75,8 @@ public class SignupActivity extends AppCompatActivity {
                             DatabaseReference myRef = database.getReference("users");
 
                             // TODO: agregar la foto a storage y cambiar currentLocation
-                            User u = new User(etID.getText().toString() , currentLocation.latitude ,
-                                    currentLocation.longitude, false,
+                            User u = new User(etID.getText().toString() , 4 ,
+                                    -72, false,
                                     etName.getText().toString() , etLastName.getText().toString());
                             myRef.child(user.getUid()).setValue(u);
                             updateUI(user);
