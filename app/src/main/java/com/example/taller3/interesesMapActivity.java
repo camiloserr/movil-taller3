@@ -110,30 +110,8 @@ public class interesesMapActivity extends AppCompatActivity implements OnMapRead
         upDateCurrentPosition();
         solicitarPermiso(this, Manifest.permission.ACCESS_FINE_LOCATION, "Necesito permiso para localización", FINE_LOCATION);
         usarPermiso();
-        ref = database.getReference("users").child(mAuth.getCurrentUser().getUid());
+        listenForChanges();
 
-        mapFragment.setHasOptionsMenu(true);
-
-        ref.addValueEventListener(new ValueEventListener() {
-            @Override
-            public void onDataChange(DataSnapshot dataSnapshot) {
-                User u = dataSnapshot.getValue(User.class);
-                if(u != null) {
-                    Log.i(TAG, "onDataChange: " + u.getName() + " " + u.getLastname());
-                    myUser = u;
-                    updateSwitch();
-                }
-                else{
-                    Log.i(TAG, "onDataChange: U is null");
-                }
-
-            }
-
-            @Override
-            public void onCancelled(DatabaseError databaseError) {
-                Log.i(TAG, "The read failed: " + databaseError.getCode());
-            }
-        });
     }
 
     @Override
@@ -383,9 +361,34 @@ public class interesesMapActivity extends AppCompatActivity implements OnMapRead
             intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
             startActivity(intent);
         }else if (itemClicked == R.id.menuItemUsers){
-            Toast.makeText(getApplicationContext() , "active Users!!" , Toast.LENGTH_SHORT).show();
+            Intent i = new Intent(interesesMapActivity.this, AvailibleUsersActivity.class);
+            startActivity(i);
         }
 
         return super.onOptionsItemSelected(item);
+    }
+
+    private void listenForChanges(){
+        ref = database.getReference("users").child(mAuth.getCurrentUser().getUid());
+
+        ref.addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                User u = dataSnapshot.getValue(User.class);
+                if(u != null) {
+                    myUser = u;
+                    updateSwitch();
+                }
+                else{
+                    Log.i(TAG, "onDataChange: U is null");
+                }
+
+            }
+
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+                Log.i(TAG, "The read failed: " + databaseError.getCode());
+            }
+        });
     }
 }
