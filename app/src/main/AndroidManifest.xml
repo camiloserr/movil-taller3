@@ -30,7 +30,7 @@
             android:value="@string/google_maps_key" />
 
         <activity
-            android:name=".interesesMapActivity"
+            android:name=".InteresesMapActivity"
             android:label="@string/title_activity_intereses_map" />
         <activity android:name=".MenuActivity" />
         <activity android:name=".SignupActivity" />
