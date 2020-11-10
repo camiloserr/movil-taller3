@@ -5,7 +5,6 @@ import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
-import androidx.fragment.app.FragmentActivity;
 
 import android.Manifest;
 import android.app.Activity;
@@ -17,12 +16,9 @@ import android.location.Geocoder;
 import android.location.Location;
 import android.os.Bundle;
 import android.util.Log;
-import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
-import android.view.View;
-import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.CompoundButton;
 import android.widget.Switch;
@@ -71,7 +67,7 @@ import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
 
-public class interesesMapActivity extends AppCompatActivity implements OnMapReadyCallback {
+public class InteresesMapActivity extends AppCompatActivity implements OnMapReadyCallback {
     private static final int FINE_LOCATION = 1;
     private static final int REQUEST_CHECK_SETTINGS = 2;
     private FusedLocationProviderClient mFusedLocationClient;
@@ -87,11 +83,14 @@ public class interesesMapActivity extends AppCompatActivity implements OnMapRead
     private Button logout;
     private FirebaseAuth mAuth;
     private Switch switchAB;
-    private FirebaseDatabase database = FirebaseDatabase.getInstance();
+    private FirebaseDatabase database;
     private final static String TAG = "menu activity";
     private DatabaseReference ref;
     private User myUser;
     private Toolbar mToolbar;
+
+    private static final String PATH_CURRENT_LOCATION = "currentLocation/";
+    private static final String PATH_LOCATION = "locationsArray/";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -99,6 +98,7 @@ public class interesesMapActivity extends AppCompatActivity implements OnMapRead
         mAuth = FirebaseAuth.getInstance();
         setContentView(R.layout.activity_intereses_map);
         markers = new ArrayList<Marker>();
+        database = FirebaseDatabase.getInstance();
         createInterest();
         mGeocoder = new Geocoder(getBaseContext());
 
@@ -206,6 +206,7 @@ public class interesesMapActivity extends AppCompatActivity implements OnMapRead
                         if(myMarker!=null){
                             myMarker.remove();
                         }
+                        updatePositionFirebase(location.getLatitude(),location.getLongitude());
                         myMarker = mMap.addMarker(new MarkerOptions().position(currentLocation).title(geoCoderSearch(currentLocation)).snippet("Ubicación Actual").alpha(0.8f)
                                 .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_AZURE)));
                         mMap.moveCamera(CameraUpdateFactory.newLatLng(currentLocation));
@@ -216,6 +217,26 @@ public class interesesMapActivity extends AppCompatActivity implements OnMapRead
         };
     }
 
+    private void updatePositionFirebase(final Double latitude, final Double longitud){
+        ref = database.getReference("users").child(mAuth.getCurrentUser().getUid());
+        ref.addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                User u = dataSnapshot.getValue(User.class);
+                if(u != null && u.isAvailible()) {
+                    myUser = u;
+                    myUser.setLon(longitud);
+                    myUser.setLat(latitude);
+                    ref.setValue(myUser);
+                }
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError databaseError) {
+                Log.i(TAG, "The read failed: " + databaseError.getCode());
+            }
+        });
+    }
     private String geoCoderSearch(LatLng latlng){
         String address = "";
         try{
@@ -253,7 +274,7 @@ public class interesesMapActivity extends AppCompatActivity implements OnMapRead
                     case CommonStatusCodes.RESOLUTION_REQUIRED:
                         try{
                             ResolvableApiException resolvable = (ResolvableApiException) e;
-                            resolvable.startResolutionForResult(interesesMapActivity.this,REQUEST_CHECK_SETTINGS);
+                            resolvable.startResolutionForResult(InteresesMapActivity.this,REQUEST_CHECK_SETTINGS);
                         }catch (IntentSender.SendIntentException sendEx){
                             Log.e("Actividad Mapis: ",sendEx.getMessage());
                         }
@@ -295,15 +316,6 @@ public class interesesMapActivity extends AppCompatActivity implements OnMapRead
         super.onResume();
         startLocationUpdates();
     }
-    @Override
-    protected void onPause() {
-        super.onPause();
-        stopLocationUpdates();
-    }
-
-    private void stopLocationUpdates(){
-        mFusedLocationClient.removeLocationUpdates(mLocationCallback);
-    }
     private void updateSwitch() {
         if(switchAB != null)
             switchAB.setChecked(myUser.isAvailible());
@@ -313,7 +325,7 @@ public class interesesMapActivity extends AppCompatActivity implements OnMapRead
     private void updateUI(FirebaseUser user) {
 
         if(user == null){
-            Intent i = new Intent(interesesMapActivity.this , MainActivity.class);
+            Intent i = new Intent(InteresesMapActivity.this , MainActivity.class);
             startActivity(i);
         }
     }
@@ -357,17 +369,19 @@ public class interesesMapActivity extends AppCompatActivity implements OnMapRead
         int itemClicked = item.getItemId();
         if(itemClicked == R.id.menuItemLogout){
             mAuth.signOut();
-            Intent intent = new Intent(interesesMapActivity.this, MainActivity.class);
+            Intent intent = new Intent(InteresesMapActivity.this, MainActivity.class);
             intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
             startActivity(intent);
         }else if (itemClicked == R.id.menuItemUsers){
-            Intent i = new Intent(interesesMapActivity.this, AvailibleUsersActivity.class);
+            Intent i = new Intent(InteresesMapActivity.this, AvailibleUsersActivity.class);
             startActivity(i);
         }
 
         return super.onOptionsItemSelected(item);
     }
-
+    private  void stopLocationsUpdate(){
+        mFusedLocationClient.removeLocationUpdates(mLocationCallback);
+    }
     private void listenForChanges(){
         ref = database.getReference("users").child(mAuth.getCurrentUser().getUid());
 
