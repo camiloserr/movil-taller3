@@ -91,6 +91,7 @@ public class AvailibleUsersActivity extends AppCompatActivity {
                 Toast.makeText(AvailibleUsersActivity.this, u.getName(), Toast.LENGTH_SHORT).show();
             }
         });
+        listenForChanges();
     }
 
     @Override
@@ -152,6 +153,7 @@ public class AvailibleUsersActivity extends AppCompatActivity {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
                 User u = dataSnapshot.getValue(User.class);
+                Log.i(TAG, "onDataChange: " + u.getName());
                 if(u != null) {
                     updateSwitch(u);
                 }

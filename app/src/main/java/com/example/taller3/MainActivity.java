@@ -29,12 +29,21 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+        Log.i(TAG, "After the call to the service");
+
+
         etEmail = findViewById(R.id.editTextTextEmailAddress);
         etPassword = findViewById(R.id.editTextTextPassword);
         btnLogIn = findViewById(R.id.buttonLogin);
         btnSignUp = findViewById(R.id.buttonRegister);
 
         mAuth = FirebaseAuth.getInstance();
+
+
+        //empieza el servicio de notificaciones
+        Intent intentNotifications = new Intent(MainActivity.this, NotificationService.class);
+        intentNotifications.putExtra("myKey" , mAuth.getUid());
+        startService(intentNotifications);
 
 
         btnLogIn.setOnClickListener(new View.OnClickListener() {
