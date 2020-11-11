@@ -156,7 +156,7 @@ public class AvailibleUsersActivity extends AppCompatActivity {
     private void listenForChanges(){
         refUser = database.getReference("users").child(mAuth.getCurrentUser().getUid());
 
-        refUser.addValueEventListener(new ValueEventListener() {
+        refUser.addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
                 User u = dataSnapshot.getValue(User.class);

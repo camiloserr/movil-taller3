@@ -144,7 +144,7 @@ public class FollowLocationActivity extends AppCompatActivity implements OnMapRe
             marker.remove();
         }
         if(ll != null && currentLocation != null) {
-            tvDistancia.setText(String.valueOf(distance(ll, currentLocation)));
+            tvDistancia.setText(String.valueOf(distance(ll, currentLocation))+" Km");
         }
         marker = mMap.addMarker(new MarkerOptions().position(ll).title(u.getName() + " " + u.getLastname()).alpha(0.8f).
                 icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_GREEN)));
@@ -196,7 +196,15 @@ public class FollowLocationActivity extends AppCompatActivity implements OnMapRe
                 Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
             mFusedLocationClient.requestLocationUpdates(mLocationRequest, mLocationCallback, null);
         }
+
     }
+
+
+    private void stopUpdates(){
+        mFusedLocationClient.removeLocationUpdates(mLocationCallback);
+    }
+
+
     protected LocationRequest createLocationRequest() {
         LocationRequest locationRequest = new LocationRequest();
         locationRequest.setInterval(10000); //tasa de refresco en milisegundos
@@ -216,7 +224,7 @@ public class FollowLocationActivity extends AppCompatActivity implements OnMapRe
                             myMarker.remove();
                         }
                         updatePositionFirebase(location.getLatitude(),location.getLongitude());
-                        myMarker = mMap.addMarker(new MarkerOptions().position(currentLocation).title(geoCoderSearch(currentLocation)).snippet("Ubicación Actual").alpha(0.8f)
+                        myMarker = mMap.addMarker(new MarkerOptions().position(currentLocation).title("Yo").snippet("Ubicación Actual").alpha(0.8f)
                                 .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_AZURE)));
 
                         if(firstTime) {
@@ -231,6 +239,9 @@ public class FollowLocationActivity extends AppCompatActivity implements OnMapRe
     }
 
     private void updatePositionFirebase(final Double latitude, final Double longitud){
+        if(mAuth.getCurrentUser() == null){
+            return;
+        }
         ref = database.getReference("users").child(mAuth.getCurrentUser().getUid());
         ref.addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
@@ -250,18 +261,7 @@ public class FollowLocationActivity extends AppCompatActivity implements OnMapRe
             }
         });
     }
-    private String geoCoderSearch(LatLng latlng){
-        String address = "";
-        try{
-            List<Address> res = mGeocoder.getFromLocation(latlng.latitude, latlng.longitude, 2);
-            if(res != null && res.size() > 0){
-                address = res.get(0).getAddressLine(0);
-            }
-        }catch(IOException e){
-            e.printStackTrace();
-        }
-        return address;
-    }
+
 
     public void usarPermiso(){
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
@@ -384,6 +384,7 @@ public class FollowLocationActivity extends AppCompatActivity implements OnMapRe
             mAuth.signOut();
             Intent intent = new Intent(FollowLocationActivity.this, MainActivity.class);
             intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+            stopUpdates();
             startActivity(intent);
         }else if (itemClicked == R.id.menuItemUsers){
             Intent i = new Intent(FollowLocationActivity.this, AvailibleUsersActivity.class);
