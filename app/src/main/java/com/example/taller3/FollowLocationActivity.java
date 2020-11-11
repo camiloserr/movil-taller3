@@ -146,8 +146,10 @@ public class FollowLocationActivity extends AppCompatActivity implements OnMapRe
         if(ll != null && currentLocation != null) {
             tvDistancia.setText(String.valueOf(distance(ll, currentLocation))+" Km");
         }
-        marker = mMap.addMarker(new MarkerOptions().position(ll).title(u.getName() + " " + u.getLastname()).alpha(0.8f).
-                icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_GREEN)));
+        if(mMap != null) {
+            marker = mMap.addMarker(new MarkerOptions().position(ll).title(u.getName() + " " + u.getLastname()).alpha(0.8f).
+                    icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_GREEN)));
+        }
     }
 
 
