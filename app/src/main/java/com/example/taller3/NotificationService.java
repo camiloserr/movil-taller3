@@ -71,8 +71,8 @@ public class NotificationService extends IntentService {
                     mBuilder.setPriority(NotificationCompat.PRIORITY_DEFAULT);
 
 
-                    //TODO: llevar a la actividad de seguimiento
-                    Intent intent = new Intent(getApplicationContext(), AvailibleUsersActivity.class);
+                    Intent intent = new Intent(getApplicationContext(), FollowLocationActivity.class);
+                    intent.putExtra("uID" , dataSnapshot.getKey());
                     intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK |
                             Intent.FLAG_ACTIVITY_CLEAR_TASK);
                     PendingIntent pendingIntent = PendingIntent.getActivity(getApplicationContext(), 0, intent, 0);

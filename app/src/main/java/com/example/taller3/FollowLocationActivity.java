@@ -67,7 +67,7 @@ import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
 
-public class InteresesMapActivity extends AppCompatActivity implements OnMapReadyCallback {
+public class FollowLocationActivity extends AppCompatActivity implements OnMapReadyCallback {
     private static final int FINE_LOCATION = 1;
     private static final int REQUEST_CHECK_SETTINGS = 2;
     private FusedLocationProviderClient mFusedLocationClient;
@@ -76,7 +76,6 @@ public class InteresesMapActivity extends AppCompatActivity implements OnMapRead
     private GoogleMap mMap;
     private List<Interes> intereses;
     private LatLng currentLocation;
-    private List<Marker> markers;
     private Geocoder mGeocoder;
     private Marker myMarker;
 
@@ -89,6 +88,8 @@ public class InteresesMapActivity extends AppCompatActivity implements OnMapRead
     private User myUser;
     private Toolbar mToolbar;
     private boolean firstTime = true;
+    private String userID;
+    private Marker marker;
 
     private static final String PATH_CURRENT_LOCATION = "currentLocation/";
     private static final String PATH_LOCATION = "locationsArray/";
@@ -100,10 +101,12 @@ public class InteresesMapActivity extends AppCompatActivity implements OnMapRead
         mAuth = FirebaseAuth.getInstance();
         updateUI(mAuth.getCurrentUser());
         setContentView(R.layout.activity_intereses_map);
-        markers = new ArrayList<Marker>();
         database = FirebaseDatabase.getInstance();
-        createInterest();
         mGeocoder = new Geocoder(getBaseContext());
+
+        userID = getIntent().getStringExtra("uID");
+
+        follow();
 
         SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
                 .findFragmentById(R.id.map);
@@ -124,9 +127,7 @@ public class InteresesMapActivity extends AppCompatActivity implements OnMapRead
         mMap.getUiSettings().setZoomControlsEnabled(true);
         mMap.getUiSettings().setCompassEnabled(true);
         solicitarPermiso(this, Manifest.permission.ACCESS_FINE_LOCATION, "Necesito permiso para localización", FINE_LOCATION);
-        if(markers.size()>0){
-            markers.clear();
-        }
+
         // Debo usar permiso en este callback
         solicitarPermiso(this, Manifest.permission.ACCESS_FINE_LOCATION, "Necesito permiso para localización", FINE_LOCATION);
         usarPermiso();
@@ -134,25 +135,24 @@ public class InteresesMapActivity extends AppCompatActivity implements OnMapRead
 
 
     }
-    public void pintarPuntos(){//Creo los markers y los pongo en el mapa
+    public void pintarUsuario(User u){//Creo los markers y los pongo en el mapa
         Log.i("PintarCositos",""+intereses.size());
-        for(int i=0; i < intereses.size();i++){
-            LatLng ll = new LatLng(intereses.get(i).getLatitude(),intereses.get(i).getLongitude());
-            markers.add(mMap.addMarker(new MarkerOptions().position(ll).title(intereses.get(i).getName()).alpha(0.8f).
-                    icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_GREEN))));
-        }}
-    public void createInterest(){
-        DatabaseReference refDB = database.getReference("locationsArray");
+        LatLng ll = new LatLng(u.getLat(),u.getLon());
+        if(marker != null){
+            marker.remove();
+        }
+        marker = mMap.addMarker(new MarkerOptions().position(ll).title(u.getName() + " " + u.getLastname()).alpha(0.8f).
+                icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_GREEN)));
+    }
+
+
+    public void follow(){
+        DatabaseReference refDB = database.getReference("users").child(userID);
         refDB.addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
-                intereses = new ArrayList<>();
-                for (DataSnapshot userSnapshot: dataSnapshot.getChildren()) {
-                    Interes i = userSnapshot.getValue(Interes.class);
-                    Log.i("LatLang",i.getName());
-                    intereses.add(i);
-                }
-                pintarPuntos();
+                User u = dataSnapshot.getValue(User.class);
+                pintarUsuario(u);
             }
 
             @Override
@@ -268,7 +268,7 @@ public class InteresesMapActivity extends AppCompatActivity implements OnMapRead
                     case CommonStatusCodes.RESOLUTION_REQUIRED:
                         try{
                             ResolvableApiException resolvable = (ResolvableApiException) e;
-                            resolvable.startResolutionForResult(InteresesMapActivity.this,REQUEST_CHECK_SETTINGS);
+                            resolvable.startResolutionForResult(FollowLocationActivity.this,REQUEST_CHECK_SETTINGS);
                         }catch (IntentSender.SendIntentException sendEx){
                             Log.e("Actividad Mapis: ",sendEx.getMessage());
                         }
@@ -319,7 +319,7 @@ public class InteresesMapActivity extends AppCompatActivity implements OnMapRead
     private void updateUI(FirebaseUser user) {
 
         if(user == null){
-            Intent i = new Intent(InteresesMapActivity.this , MainActivity.class);
+            Intent i = new Intent(FollowLocationActivity.this , MainActivity.class);
             startActivity(i);
         }
     }
@@ -363,11 +363,11 @@ public class InteresesMapActivity extends AppCompatActivity implements OnMapRead
         int itemClicked = item.getItemId();
         if(itemClicked == R.id.menuItemLogout){
             mAuth.signOut();
-            Intent intent = new Intent(InteresesMapActivity.this, MainActivity.class);
+            Intent intent = new Intent(FollowLocationActivity.this, MainActivity.class);
             intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
             startActivity(intent);
         }else if (itemClicked == R.id.menuItemUsers){
-            Intent i = new Intent(InteresesMapActivity.this, AvailibleUsersActivity.class);
+            Intent i = new Intent(FollowLocationActivity.this, AvailibleUsersActivity.class);
             startActivity(i);
         }
 

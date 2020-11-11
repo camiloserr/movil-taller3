@@ -23,6 +23,7 @@ import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
+import com.google.firebase.internal.InternalTokenProvider;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -92,7 +93,9 @@ public class AvailibleUsersActivity extends AppCompatActivity {
             public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
                 User u = availibleUsers.get(i);
                 Log.i(TAG, "onItemClick: " + u.getName());
-                Toast.makeText(AvailibleUsersActivity.this, u.getName(), Toast.LENGTH_SHORT).show();
+                Intent followIntetn = new Intent(AvailibleUsersActivity.this, FollowLocationActivity.class);
+                followIntetn.putExtra("uID" , keysUsers.get(i));
+                startActivity(followIntetn);
             }
         });
         listenForChanges();
