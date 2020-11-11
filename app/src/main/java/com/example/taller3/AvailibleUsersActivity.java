@@ -25,13 +25,15 @@ import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 
 public class AvailibleUsersActivity extends AppCompatActivity {
 
     private ListView lvUsers;
     private UserAdapter userAdapter;
-    private  ArrayList<User> availibleUsers;
+    private List<User> availibleUsers;
+    private List<String> keysUsers;
     private final static String  TAG = "AvailibleUsersAcativity";
     private FirebaseDatabase database = FirebaseDatabase.getInstance();
     private FirebaseAuth mAuth;
@@ -51,8 +53,8 @@ public class AvailibleUsersActivity extends AppCompatActivity {
         mAuth = FirebaseAuth.getInstance();
 
         availibleUsers  = new ArrayList<>();
-
-        userAdapter = new UserAdapter(this, availibleUsers);
+        keysUsers = new ArrayList<>();
+        userAdapter = new UserAdapter(this, availibleUsers,keysUsers);
         lvUsers.setAdapter(userAdapter);
 
 
@@ -63,16 +65,18 @@ public class AvailibleUsersActivity extends AppCompatActivity {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
                 availibleUsers = new ArrayList<>();
+                keysUsers = new ArrayList<>();
                 for (DataSnapshot userSnapshot: dataSnapshot.getChildren()) {
                     User u = userSnapshot.getValue(User.class);
-                    Log.i(TAG, "onDataChange: " + u.getName() + " " + u.getLastname());
+                    Log.i(TAG, "onDataChange: " + u.getName() + " " + userSnapshot.getKey());
                     // si el usuario esta disponible y es diferente al usuario logeado
                     if(u.isAvailible() && (!userSnapshot.getKey().equals(logedUserID))){
                         availibleUsers.add(u);
+                        keysUsers.add(userSnapshot.getKey());
                     }
 
                 }
-                userAdapter = new UserAdapter(getApplicationContext(), availibleUsers);
+                userAdapter = new UserAdapter(getApplicationContext(), availibleUsers,keysUsers);
                 lvUsers.setAdapter(userAdapter);
 
             }

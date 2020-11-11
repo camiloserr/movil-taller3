@@ -94,6 +94,7 @@ public class InteresesMapActivity extends AppCompatActivity implements OnMapRead
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+        intereses = new ArrayList<>();
         super.onCreate(savedInstanceState);
         mAuth = FirebaseAuth.getInstance();
         setContentView(R.layout.activity_intereses_map);
@@ -124,55 +125,41 @@ public class InteresesMapActivity extends AppCompatActivity implements OnMapRead
         if(markers.size()>0){
             markers.clear();
         }
-        //Creo los markers y los pongo en el mapa
-        for(int i=0; i < intereses.size();i++){
-            markers.add(mMap.addMarker(new MarkerOptions().position(intereses.get(i)
-                    .getLocation()).title(intereses.get(i).getName()).alpha(0.8f).
-                    icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_GREEN))));
-        }
         // Debo usar permiso en este callback
         solicitarPermiso(this, Manifest.permission.ACCESS_FINE_LOCATION, "Necesito permiso para localización", FINE_LOCATION);
         usarPermiso();
         upDateCurrentPosition();
+        mMap.moveCamera(CameraUpdateFactory.zoomTo(15));
     }
+    public void pintarPuntos(){//Creo los markers y los pongo en el mapa
+        Log.i("PintarCositos",""+intereses.size());
+        for(int i=0; i < intereses.size();i++){
+            LatLng ll = new LatLng(intereses.get(i).getLatitude(),intereses.get(i).getLongitude());
+            markers.add(mMap.addMarker(new MarkerOptions().position(ll).title(intereses.get(i).getName()).alpha(0.8f).
+                    icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_GREEN))));
+        }}
     public void createInterest(){
-        intereses = new ArrayList<Interes>();
-        JSONObject json = null;
-        JSONArray interesesJsonArray = null;
-        try{
-            json = new JSONObject(loadJSONFromAsset());
-            interesesJsonArray = json.getJSONArray("locationsArray");
-            for(int i=0; i < interesesJsonArray.length(); i++){
-                JSONObject jsonObject = interesesJsonArray.getJSONObject(i);
-                double latitude = Double.valueOf(jsonObject.getString("latitude"));
-                double longitude = Double.valueOf(jsonObject.getString("longitude"));
-                LatLng latLng = new LatLng(latitude,longitude);
-                String name = jsonObject.getString("name");
-                Interes nuevo = new Interes(latLng,name);
-                intereses.add(nuevo);
+        DatabaseReference refDB = database.getReference("locationsArray");
+        refDB.addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                intereses = new ArrayList<>();
+                for (DataSnapshot userSnapshot: dataSnapshot.getChildren()) {
+                    Interes i = userSnapshot.getValue(Interes.class);
+                    Log.i("LatLang",i.getName());
+                    intereses.add(i);
+                }
+                pintarPuntos();
             }
-        } catch (JSONException e) {
-            e.printStackTrace();
-        }
 
+            @Override
+            public void onCancelled(@NonNull DatabaseError databaseError) {
+                Log.i(TAG, "The read failed: " + databaseError.getCode());
+            }
+        });
 
     }
 
-    public String loadJSONFromAsset(){
-        String json=  null;
-        try{
-            InputStream is = this.getAssets().open("locations.json");
-            int size = is.available();
-            byte[] buffer = new byte[size];
-            is.read(buffer);
-            is.close();
-            json = new String(buffer, "UTF-8");
-        }catch (IOException ex){
-            ex.printStackTrace();
-            return null;
-        }
-        return json;
-    }
     private void solicitarPermiso(Activity context, String permiso, String justificacion, int idPermiso) {
         if (ContextCompat.checkSelfPermission(context, permiso) != PackageManager.PERMISSION_GRANTED) {
             ActivityCompat.requestPermissions(this, new String[]{permiso}, idPermiso);
@@ -210,7 +197,6 @@ public class InteresesMapActivity extends AppCompatActivity implements OnMapRead
                         myMarker = mMap.addMarker(new MarkerOptions().position(currentLocation).title(geoCoderSearch(currentLocation)).snippet("Ubicación Actual").alpha(0.8f)
                                 .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_AZURE)));
                         mMap.moveCamera(CameraUpdateFactory.newLatLng(currentLocation));
-                        mMap.moveCamera(CameraUpdateFactory.zoomTo(15));
                     }
                 }
             }
@@ -378,9 +364,6 @@ public class InteresesMapActivity extends AppCompatActivity implements OnMapRead
         }
 
         return super.onOptionsItemSelected(item);
-    }
-    private  void stopLocationsUpdate(){
-        mFusedLocationClient.removeLocationUpdates(mLocationCallback);
     }
     private void listenForChanges(){
         ref = database.getReference("users").child(mAuth.getCurrentUser().getUid());

@@ -4,6 +4,9 @@ import android.app.Activity;
 import android.content.Context;
 import android.location.Address;
 import android.location.Geocoder;
+import android.net.Uri;
+import android.util.Log;
+import android.util.Pair;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -12,10 +15,18 @@ import android.widget.ImageView;
 import android.widget.ListAdapter;
 import android.widget.TextView;
 
+import androidx.annotation.NonNull;
+
 import com.example.taller3.model.User;
 import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.tasks.OnFailureListener;
+import com.google.android.gms.tasks.OnSuccessListener;
+import com.google.firebase.storage.FileDownloadTask;
+import com.google.firebase.storage.FirebaseStorage;
+import com.google.firebase.storage.StorageReference;
 import com.squareup.picasso.Picasso;
 
+import java.io.File;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.List;
@@ -25,10 +36,11 @@ public class UserAdapter extends BaseAdapter {
 
     private Context context;
     private List<User> users;
-
-    public UserAdapter(Context context, List<User> users) {
+    private List<String> keys;
+    public UserAdapter(Context context, List<User> users,List<String> keys) {
         this.context = context;
         this.users = users;
+        this.keys = keys;
     }
 
     @Override
@@ -67,12 +79,30 @@ public class UserAdapter extends BaseAdapter {
 
 
         //Asignar foto
-        /*****************Saca una imagen random, eso toca cambiarlo**********************/
-        String imageUri = "https://picsum.photos/200?random=" + i;
-        Picasso.with(context).load(imageUri).transform(new CircleTransform()).into(imagen);
-        /*********************************************************************************/
 
+        /*****************Saca una imagen random, eso toca cambiarlo**********************/
+        downloadFile(keys.get(i),imagen);
+        /*********************************************************************************/
         return view;
 
+    }
+
+    private void downloadFile(String uid, final ImageView imagen) {
+
+        StorageReference mStorageRef;
+        mStorageRef = FirebaseStorage.getInstance().getReferenceFromUrl("gs://taller3-401c5.appspot.com");
+        StorageReference imageRef = mStorageRef.child("users/"+uid+"/profile.jpg");
+        imageRef.getDownloadUrl().addOnSuccessListener(new OnSuccessListener<Uri>() {
+            @Override
+            public void onSuccess(Uri uri) {
+                Log.i("Imagen",uri.toString());
+                Picasso.with(context).load(uri).transform(new CircleTransform()).into(imagen);
+            }
+        }).addOnFailureListener(new OnFailureListener() {
+            @Override
+            public void onFailure(@NonNull Exception e) {
+                Log.i("Imagen", "No pude");
+            }
+        });
     }
 }

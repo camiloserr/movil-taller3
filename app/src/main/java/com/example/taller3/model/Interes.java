@@ -5,22 +5,35 @@ import android.location.Location;
 import com.google.android.gms.maps.model.LatLng;
 
 public class Interes {
-    private LatLng location;
+
+    private double latitude;
+    private double longitude;
     private String name;
 
-    public Interes(LatLng pLocation, String pName){
-        this.location = pLocation;
+    public Interes(double plongitude,double platitude, String pName){
+        this.latitude = platitude;
+        this.longitude = plongitude;
         this.name = pName;
     }
+    public Interes(){
 
-    public LatLng getLocation() {
-        return location;
     }
 
-    public void setLocation(LatLng location) {
-        this.location = location;
+    public double getLatitude() {
+        return latitude;
     }
 
+    public void setLatitude(double latitude) {
+        this.latitude = latitude;
+    }
+
+    public double getLongitude() {
+        return longitude;
+    }
+
+    public void setLongitude(double longitude) {
+        this.longitude = longitude;
+    }
     public String getName() {
         return name;
     }
