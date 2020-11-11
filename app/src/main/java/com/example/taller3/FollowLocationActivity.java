@@ -152,7 +152,7 @@ public class FollowLocationActivity extends AppCompatActivity implements OnMapRe
         }
     }
 
-
+   
     public double distance(LatLng p1, LatLng p2) {
         double RADIUS_OF_EARTH_KM = 6371.01;
         double lat1 = p1.latitude, lat2 = p2.latitude;

@@ -40,10 +40,6 @@ public class MainActivity extends AppCompatActivity {
         mAuth = FirebaseAuth.getInstance();
 
 
-        //empieza el servicio de notificaciones
-        Intent intentNotifications = new Intent(MainActivity.this, NotificationService.class);
-        intentNotifications.putExtra("myKey" , mAuth.getUid());
-        startService(intentNotifications);
 
 
         btnLogIn.setOnClickListener(new View.OnClickListener() {
@@ -95,6 +91,10 @@ public class MainActivity extends AppCompatActivity {
 
     private void updateUI(FirebaseUser currentUser){
         if(currentUser != null){
+            //empieza el servicio de notificaciones
+            Intent intentNotifications = new Intent(MainActivity.this, NotificationService.class);
+            intentNotifications.putExtra("myKey" , mAuth.getUid());
+            startService(intentNotifications);
             Intent i = new Intent(getApplicationContext(), InteresesMapActivity.class);
             startActivity(i);
         }
