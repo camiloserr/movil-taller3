@@ -22,6 +22,7 @@ import android.view.MenuItem;
 import android.widget.Button;
 import android.widget.CompoundButton;
 import android.widget.Switch;
+import android.widget.TextView;
 import android.widget.Toast;
 import android.widget.Toolbar;
 
@@ -79,17 +80,16 @@ public class FollowLocationActivity extends AppCompatActivity implements OnMapRe
     private Geocoder mGeocoder;
     private Marker myMarker;
 
-    private Button logout;
     private FirebaseAuth mAuth;
     private Switch switchAB;
     private FirebaseDatabase database;
     private final static String TAG = "menu activity";
     private DatabaseReference ref;
     private User myUser;
-    private Toolbar mToolbar;
     private boolean firstTime = true;
     private String userID;
     private Marker marker;
+    private TextView tvDistancia;
 
     private static final String PATH_CURRENT_LOCATION = "currentLocation/";
     private static final String PATH_LOCATION = "locationsArray/";
@@ -100,16 +100,18 @@ public class FollowLocationActivity extends AppCompatActivity implements OnMapRe
         super.onCreate(savedInstanceState);
         mAuth = FirebaseAuth.getInstance();
         updateUI(mAuth.getCurrentUser());
-        setContentView(R.layout.activity_intereses_map);
+        setContentView(R.layout.activity_follow_location);
         database = FirebaseDatabase.getInstance();
         mGeocoder = new Geocoder(getBaseContext());
+        tvDistancia = findViewById(R.id.textViewDistancia);
 
         userID = getIntent().getStringExtra("uID");
 
         follow();
 
+
         SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
-                .findFragmentById(R.id.map);
+                .findFragmentById(R.id.map_follow);
         mapFragment.getMapAsync(this);
         mFusedLocationClient = LocationServices.getFusedLocationProviderClient(this);
         mLocationRequest = createLocationRequest();
@@ -141,10 +143,25 @@ public class FollowLocationActivity extends AppCompatActivity implements OnMapRe
         if(marker != null){
             marker.remove();
         }
+        tvDistancia.setText(String.valueOf(distance(ll, currentLocation)));
         marker = mMap.addMarker(new MarkerOptions().position(ll).title(u.getName() + " " + u.getLastname()).alpha(0.8f).
                 icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_GREEN)));
     }
 
+
+    public double distance(LatLng p1, LatLng p2) {
+        double RADIUS_OF_EARTH_KM = 6371.01;
+        double lat1 = p1.latitude, lat2 = p2.latitude;
+        double long1 = p1.longitude , long2 = p2.longitude;
+        double latDistance = Math.toRadians(lat1 - lat2);
+        double lngDistance = Math.toRadians(long1 - long2);
+        double a = Math.sin(latDistance / 2) * Math.sin(latDistance / 2)
+                + Math.cos(Math.toRadians(lat1)) * Math.cos(Math.toRadians(lat2))
+                * Math.sin(lngDistance / 2) * Math.sin(lngDistance / 2);
+        double c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+        double result = RADIUS_OF_EARTH_KM * c;
+        return Math.round(result*100.0)/100.0;
+    }
 
     public void follow(){
         DatabaseReference refDB = database.getReference("users").child(userID);
