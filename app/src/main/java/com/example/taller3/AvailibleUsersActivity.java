@@ -160,9 +160,10 @@ public class AvailibleUsersActivity extends AppCompatActivity {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
                 User u = dataSnapshot.getValue(User.class);
-                Log.i(TAG, "onDataChange: " + u.getName());
                 if(u != null) {
                     updateSwitch(u);
+                    Log.i(TAG, "onDataChange: " + u.getName());
+
                 }
                 else{
                     Log.i(TAG, "onDataChange: U is null");

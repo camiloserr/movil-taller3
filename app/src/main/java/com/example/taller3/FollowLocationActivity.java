@@ -143,7 +143,9 @@ public class FollowLocationActivity extends AppCompatActivity implements OnMapRe
         if(marker != null){
             marker.remove();
         }
-        tvDistancia.setText(String.valueOf(distance(ll, currentLocation)));
+        if(ll != null && currentLocation != null) {
+            tvDistancia.setText(String.valueOf(distance(ll, currentLocation)));
+        }
         marker = mMap.addMarker(new MarkerOptions().position(ll).title(u.getName() + " " + u.getLastname()).alpha(0.8f).
                 icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_GREEN)));
     }
